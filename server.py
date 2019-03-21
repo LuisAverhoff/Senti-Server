@@ -9,7 +9,7 @@ from pika_client import PikaClient
 from websocket_handler import WSHandler
 from stream_listener import AsyncThreadStreamListener
 
-define("port", default=3000, help="run on the given port.", type=int)
+define("port", default=8000, help="run on the given port.", type=int)
 define("debug", default=True, help="run in debug mode.", type=bool)
 
 

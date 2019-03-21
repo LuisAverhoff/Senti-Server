@@ -91,14 +91,14 @@ class TweetStreamListener(StreamListener):
     def on_status(self, status):
 
         # We are not processing retweets. Only new tweets.
-        if hasattr(status, 'retweeted_status'):
+        if getattr(status, 'retweeted_status', None):
             return
 
         tweet = status.text
 
         # If extended_tweet exists, this the means that status.text is truncated.
         # We want the entire text.
-        if hasattr(status, 'extended_tweet'):
+        if getattr(status, 'extended_tweet', None):
             tweet = status.extended_tweet['full_text']
 
         clean_tweet = preprocess_tweet(tweet)
@@ -106,8 +106,8 @@ class TweetStreamListener(StreamListener):
         polarity = calculate_polarity_score(clean_tweet)
 
         message = {
-            'polarity': polarity,
-            'timestamp': str(status.created_at)
+            'polarity': polarity['compound'],
+            'created_at': str(status.created_at)
         }
 
         sess_ids = []
@@ -119,7 +119,7 @@ class TweetStreamListener(StreamListener):
                 sess_ids.append(sess_id)
 
         for sess_id in sess_ids:
-            if self.websockets[sess_id]:
+            if sess_id in self.websockets:
                 self.websockets[sess_id].write_message(message)
 
     def on_timeout(self, status):
