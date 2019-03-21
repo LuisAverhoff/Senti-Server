@@ -1,6 +1,15 @@
 # Senti Server
 
-Backend for the senti web application to analyze all incoming tweets using the Tweepy API.
+Backend for the senti web application to analyze all incoming tweets using the Tweepy API. Data that get sent back to the client is a message of the form:
+
+```
+message = {
+  polarity: 'A value between -1.0 and 1.0. -1.0 is completely negative and 1.0 is completely positive. This is our y axis on the graph.'
+  timestamp: 'The date the tweet was created. This represents the x axis on our graph.'
+}
+```
+
+It is important to note that the rate at which a user receives a message is entirely dependent on the query that the user makes. If the user make a query for a popular topic that millions of users talk about like trump, then you can bet that the rate at which you receive your messages will be extremely fast. This is the opposite case for very obscure topics.
 
 # Installing Dependencies
 
@@ -11,7 +20,7 @@ To successfully install all dependencies, make sure you have a python version 3.
 A `.env` file is required so that the correct environment settings can be loaded during runtime. A complete list of all the required environment variables can be found in the `.env.sample` file.
 Before we continue, let us setup our rabbitmq server and register a twitter developer account.
 
-#### Registering for a twitter developer account.
+## Registering for a twitter developer account.
 
 Follow this link <https://developer.twitter.com/en/apply-for-access.html> to apply for a twitter developer account and register your application. Once you have a developer account and have registered your application, if you go into the details section of your application, you should see your `TWITTER_CONSUMER_API_KEY` and `TWITTER_CONSUMER_API_SECRET_KEY` already generated for you. For the `TWITTER_ACCESS_KEY` and the `TWITTER_ACCESS_SECRET_KEY` you will need to follow these steps:
 
@@ -22,7 +31,7 @@ Follow this link <https://developer.twitter.com/en/apply-for-access.html> to app
 
 After that, simply these paste these four keys in your `.env`file and you're done with this step.
 
-#### Setting up a RabbitMQ Server.
+## Setting up a RabbitMQ Server.
 
 If you go to this link <https://www.rabbitmq.com/download.html> you will see a bunch of different installation guides. Pick the guide that matches your current system. After you have gone through this process, you need to make sure that the following port is open and is not blocked by your firewall:
 
