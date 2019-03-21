@@ -8,8 +8,6 @@ are looking for like so:
 
 Any other constants you like to add should be placed here as well.
 """
-import logging.config
-import os
 from environs import Env
 
 env = Env()
@@ -25,41 +23,3 @@ SETTINGS = {
     'RABBITMQ_HOST': env("RABBITMQ_HOST"),
     'RABBITMQ_PORT': env("RABBITMQ_PORT")
 }
-
-ERROR_FORMAT = "%(levelname)s at %(asctime)s in %(funcName)s in %(filename) at line %(lineno)d: %(message)s"
-DEBUG_FORMAT = "%(lineno)d in %(filename)s at %(asctime)s: %(message)s"
-
-LOG_CONFIG = {'version': 1,
-              'formatters': {'error': {'format': ERROR_FORMAT},
-                             'debug': {'format': DEBUG_FORMAT}},
-              'handlers': {'console': {'class': 'logging.StreamHandler',
-                                       'formatter': 'debug',
-                                       'level': logging.DEBUG},
-                           'file': {'class': 'logging.FileHandler',
-                                    'filename': "{0}/logs/app.log".format(os.getcwd()),
-                                    'formatter': 'error',
-                                    'level': logging.ERROR}},
-              'loggers': {
-                  'server': {  # root logger
-                      'handlers': ['console', 'file'],
-                      'level': 'INFO',
-                      'propagate': True
-                  },
-                  'client': {
-                      'handlers': ['console'],
-                      'level': 'DEBUG',
-                      'propagate': False
-                  },
-                  'stream_listener': {
-                      'handlers': ['console'],
-                      'level': 'DEBUG',
-                      'propagate': False
-                  },
-                  'handlers': {
-                      'handlers': ['console'],
-                      'level': 'DEBUG',
-                      'propagate': False
-                  },
-              }}
-
-logging.config.dictConfig(LOG_CONFIG)

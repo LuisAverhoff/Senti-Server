@@ -14,7 +14,7 @@ class PikaClient(object):
         self.connecting = False
         self.connection = None
         self.in_channel = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.out_channels = {}
         self.websockets = {}
 

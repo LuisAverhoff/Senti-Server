@@ -6,7 +6,7 @@ from tornado.websocket import WebSocketHandler
 
 class WSHandler(WebSocketHandler):
 
-    LOGGER = logging.getLogger(__name__)
+    LOGGER = logging.getLogger(__qualname__)
 
     def check_origin(self, origin):
         return True

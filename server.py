@@ -1,12 +1,13 @@
 import logging
 import os
+from setup_logger import ROOT_LOGGER
 from signal import signal, SIGINT
 from queue import Queue
 from tornado import web, ioloop
 from tornado.options import define, options, parse_command_line
-from client import PikaClient
+from pika_client import PikaClient
 from websocket_handler import WSHandler
-from stream_listener import TweetStreamListener, AsyncThreadStreamListener
+from stream_listener import AsyncThreadStreamListener
 
 define("port", default=3000, help="run on the given port.", type=int)
 define("debug", default=True, help="run in debug mode.", type=bool)
@@ -21,7 +22,7 @@ def main():
 
     parse_command_line()
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(ROOT_LOGGER)
 
     settings = {
         "debug": options.debug,
@@ -34,18 +35,16 @@ def main():
         **settings
     )
 
-    # Setup PikaClient and TweetListener
+    # Setup PikaClient and start the Async Stream Listener thread.
     app.pc = PikaClient()
     queue = Queue()
     app.queue = queue
 
-    stream_listener = TweetStreamListener()
-    async_stream_listener_thread = AsyncThreadStreamListener(
-        queue, stream_listener)
+    async_stream_listener_thread = AsyncThreadStreamListener(queue)
     async_stream_listener_thread.start()
 
     app.listen(options.port)
-    logger.info("Server running on http://localhost:{0}".format(options.port))
+    logger.info("Server listening on port: {0}".format(options.port))
 
     app.pc.connect()
     signal(SIGINT, sig_exit)
