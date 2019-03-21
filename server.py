@@ -51,7 +51,7 @@ def main():
     app.pc.run()
 
     async_stream_listener_thread.shutdown_flag.set()
-    async_stream_listener_thread.stop_async_loop()
+    async_stream_listener_thread.stop_listening()
     async_stream_listener_thread.join()
 
     logger.info('Server shutting down.')

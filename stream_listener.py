@@ -28,8 +28,8 @@ api = API(auth, wait_on_rate_limit=True)
 
 
 class ASyncIOStream(Stream):
-    def __init__(self, auth, listener):
-        super().__init__(auth, listener)
+    def __init__(self, auth, listener, **options):
+        super().__init__(auth, listener, **options)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.async_loop = None
         self._stream_task = None
@@ -58,8 +58,11 @@ class ASyncIOStream(Stream):
         self.logger.debug(
             'The stream has stopped and is not listening for tweets at the moment.')
 
+    def is_stream_running(self):
+        return self.async_loop and self.async_loop.is_running()
+
     def stop_streaming(self):
-        if self.async_loop and self.async_loop.is_running():
+        if self.is_stream_running():
             self.async_loop.call_soon_threadsafe(self.async_loop.stop)
             self.disconnect()
 
@@ -69,7 +72,7 @@ class ASyncIOStream(Stream):
 
 class TweetStreamListener(StreamListener):
 
-    def __init__(self):
+    def __init__(self, api):
         self.api = api
         self.websockets = {}
         self.logger = logging.getLogger(__name__)
@@ -86,27 +89,38 @@ class TweetStreamListener(StreamListener):
         return set(self.current_searches.values())
 
     def on_status(self, status):
-        if not hasattr(status, 'retweeted_status'):
-            clean_tweet = preprocess_tweet(status.text)
 
-            polarity = calculate_polarity_score(clean_tweet)
+        # We are not processing retweets. Only new tweets.
+        if hasattr(status, 'retweeted_status'):
+            return
 
-            message = {
-                'polarity': polarity,
-                'timestamp': str(status.created_at)
-            }
+        tweet = status.text
 
-            sess_ids = []
+        # If extended_tweet exists, this the means that status.text is truncated.
+        # We want the entire text.
+        if hasattr(status, 'extended_tweet'):
+            tweet = status.extended_tweet['full_text']
 
-            lowercase_tweet = clean_tweet.lower()
+        clean_tweet = preprocess_tweet(tweet)
 
-            for sess_id, topic in self.current_searches.items():
-                if topic in lowercase_tweet:
-                    sess_ids.append(sess_id)
+        polarity = calculate_polarity_score(clean_tweet)
 
-            for sess_id in sess_ids:
-                if self.websockets[sess_id]:
-                    self.websockets[sess_id].write_message(message)
+        message = {
+            'polarity': polarity,
+            'timestamp': str(status.created_at)
+        }
+
+        sess_ids = []
+
+        lowercase_tweet = clean_tweet.lower()
+
+        for sess_id, topic in self.current_searches.items():
+            if topic in lowercase_tweet:
+                sess_ids.append(sess_id)
+
+        for sess_id in sess_ids:
+            if self.websockets[sess_id]:
+                self.websockets[sess_id].write_message(message)
 
     def on_timeout(self, status):
         self.logger.error('Stream disconnected. continuing...')
@@ -136,9 +150,9 @@ class AsyncThreadStreamListener(Thread):
     def __init__(self, queue):
         super().__init__()
         self.queue = queue
-        self.stream_listener = TweetStreamListener()
+        self.stream_listener = TweetStreamListener(api)
         self.stream = ASyncIOStream(
-            auth=api.auth, listener=self.stream_listener)
+            auth=api.auth, listener=self.stream_listener, tweet_mode='extended')
         self.logger = logging.getLogger(self.__class__.__name__)
         self.async_loop = None
         self._queue_task = None
@@ -163,7 +177,7 @@ class AsyncThreadStreamListener(Thread):
         finally:
             self.async_loop.close()
 
-    def stop_async_loop(self):
+    def stop_listening(self):
         self.async_loop.call_soon_threadsafe(self.async_loop.stop)
 
     async def _process_queue(self):
@@ -183,7 +197,7 @@ class AsyncThreadStreamListener(Thread):
                         has finished. This needs to be done because if we don't, we risk starting
                         another thread and losing reference to the current async loop.
                     '''
-                    while self.stream.async_loop and self.stream.async_loop.is_running():
+                    while self.stream.is_stream_running():
                         pass
 
                     track_list = self.stream_listener.generate_track_list(
