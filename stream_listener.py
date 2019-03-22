@@ -7,6 +7,7 @@ from queue import Queue, Empty
 from sentiment_analyzer import calculate_polarity_score, preprocess_tweet
 from tweepy import StreamListener, OAuthHandler, Stream, API
 from tornado import gen
+from tornado.websocket import WebSocketClosedError
 from threading import Thread, Event
 
 auth = OAuthHandler(
@@ -107,7 +108,6 @@ class TweetStreamListener(StreamListener):
 
         message = {
             'polarity': polarity['compound'],
-            'created_at': str(status.created_at)
         }
 
         sess_ids = []
@@ -120,7 +120,11 @@ class TweetStreamListener(StreamListener):
 
         for sess_id in sess_ids:
             if sess_id in self.websockets:
-                self.websockets[sess_id].write_message(message)
+                try:
+                    self.websockets[sess_id].write_message(message)
+                except WebSocketClosedError:
+                    logging.error(
+                        'The connection to the websocket closed before it could send the message')
 
     def on_timeout(self, status):
         self.logger.error('Stream disconnected. continuing...')
