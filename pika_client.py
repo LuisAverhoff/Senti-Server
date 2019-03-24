@@ -29,7 +29,8 @@ class PikaClient(object):
             SETTINGS['RABBITMQ_USERNAME'], SETTINGS['RABBITMQ_PASSWORD'])
 
         param = ConnectionParameters(
-            host=SETTINGS['RABBITMQ_HOST'], port=SETTINGS['RABBITMQ_PORT'], virtual_host='/', credentials=credentials)
+            host=SETTINGS['RABBITMQ_HOST'], port=SETTINGS['RABBITMQ_PORT'],
+            virtual_host=SETTINGS['RABBITMQ_VIRTUAL_HOST'], credentials=credentials)
 
         self.connection = TornadoConnection(
             param, on_open_callback=self.on_connected)

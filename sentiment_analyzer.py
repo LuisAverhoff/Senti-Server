@@ -26,7 +26,8 @@ def preprocess_tweet(tweet):
 
     '''
         remove special characters, numbers and punctuations (except for #, ! and ? as vader uses both ! and ? 
-        characters for emphasis, apostrophe for contractions and we want to keep hashtags)
+        characters for emphasis, apostrophe for contractions and we want to keep hashtags for further
+        analsysis)
     '''
     tweet = re.sub(r"[^a-zA-Z#!?']", " ", tweet)
 
