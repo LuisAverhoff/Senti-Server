@@ -20,7 +20,6 @@ class WSHandler(WebSocketHandler):
         self.application.pc.register_websocket(self._sess_id, self)
         self.application.listener.websockets[self._sess_id] = self
 
-    @gen.coroutine
     def on_message(self, body):
         WSHandler.LOGGER.debug(
             'Websocket {0} has received a message: {1}'.format(self._sess_id, body))
@@ -28,14 +27,12 @@ class WSHandler(WebSocketHandler):
         message = json.loads(body)
 
         if 'track' in message:
-            yield ioloop.IOLoop.current().run_in_executor(None,
-                                                          self.application.listener.start_tracking,
-                                                          self._sess_id, message['track'])
+            ioloop.IOLoop.current().run_in_executor(None,
+                                                    self.application.listener.start_tracking,
+                                                    self._sess_id, message['track'])
         else:
             self.application.pc.redirect_incoming_message(
                 self._sess_id, json.dumps(body))
-
-        yield None
 
     def on_close(self):
         WSHandler.LOGGER.debug(

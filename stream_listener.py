@@ -128,6 +128,7 @@ async def process_tweet(status, current_searches, websockets):
 
     for sess_id in sess_ids:
         try:
-            await websockets[sess_id].write_message(message)
+            if sess_id in websockets:
+                await websockets[sess_id].write_message(message)
         except WebSocketClosedError:
             continue
