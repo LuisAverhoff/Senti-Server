@@ -1,6 +1,8 @@
 import logging
+import asyncio
 import json
 from uuid import uuid4
+from tornado import ioloop, gen
 from tornado.websocket import WebSocketHandler
 
 
@@ -16,10 +18,9 @@ class WSHandler(WebSocketHandler):
         WSHandler.LOGGER.debug(
             'Websocket with id {0} is now connected.'.format(self._sess_id))
         self.application.pc.register_websocket(self._sess_id, self)
-        item = {'event': 'Connection Open',
-                'websockets': self.application.pc.websockets}
-        self.application.queue.put(item)
+        self.application.listener.websockets[self._sess_id] = self
 
+    @gen.coroutine
     def on_message(self, body):
         WSHandler.LOGGER.debug(
             'Websocket {0} has received a message: {1}'.format(self._sess_id, body))
@@ -27,17 +28,22 @@ class WSHandler(WebSocketHandler):
         message = json.loads(body)
 
         if 'track' in message:
-            item = {'event': 'track',
-                    'sess_id': self._sess_id, 'track': message['track']}
-            self.application.queue.put(item)
+            yield ioloop.IOLoop.current().run_in_executor(None,
+                                                          self.application.listener.start_tracking,
+                                                          self._sess_id, message['track'])
         else:
             self.application.pc.redirect_incoming_message(
-                self._sess_id, json.dumps(message))
+                self._sess_id, json.dumps(body))
+
+        yield None
 
     def on_close(self):
         WSHandler.LOGGER.debug(
             'Websocket with id {0} has disconnected.'.format(self._sess_id))
         self.application.pc.unregister_websocket(self._sess_id)
-        item = {'event': 'Connection Closed',
-                'websockets': self.application.pc.websockets}
-        self.application.queue.put(item)
+        self.application.listener.websockets.pop(self._sess_id)
+
+        if(len(self.application.listener.websockets) is 0):
+            WSHandler.LOGGER.debug(
+                "No more connections to keep track of. Closing stream.")
+            self.application.listener.stop_tracking()

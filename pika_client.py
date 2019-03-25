@@ -9,7 +9,7 @@ from pika.adapters.tornado_connection import TornadoConnection
 class PikaClient(object):
     INPUT_QUEUE_NAME = 'in_queue'
 
-    def __init__(self):
+    def __init__(self, ioloop):
         self.connected = False
         self.connecting = False
         self.connection = None
@@ -17,6 +17,7 @@ class PikaClient(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.out_channels = {}
         self.websockets = {}
+        self.ioloop = ioloop
 
     def connect(self):
         if self.connecting:
@@ -33,7 +34,7 @@ class PikaClient(object):
             virtual_host=SETTINGS['RABBITMQ_VIRTUAL_HOST'], credentials=credentials)
 
         self.connection = TornadoConnection(
-            param, on_open_callback=self.on_connected)
+            param, on_open_callback=self.on_connected, custom_ioloop=self.ioloop)
 
     def run(self):
         self.connection.ioloop.start()
@@ -86,12 +87,11 @@ class PikaClient(object):
         self.in_channel.basic_publish(
             exchange='tornado_input', routing_key=sess_id, body=message)
 
-    @gen.coroutine
     def on_message(self, channel, method, header, body):
         sess_id = method.routing_key
 
         if sess_id in self.websockets:
-            yield self.websockets[sess_id].write_message(body)
+            self.websockets[sess_id].write_message(body)
             channel.basic_ack(delivery_tag=method.delivery_tag)
         else:
             channel.basic_reject(delivery_tag=method.delivery_tag)

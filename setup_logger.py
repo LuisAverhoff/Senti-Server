@@ -38,23 +38,18 @@ LOG_CONFIG = {
         'PikaClient': {
             'handlers': ['console'],
             'level': 'DEBUG',
+            'propagate': False
         },
         'TweetStreamListener': {
-            'handlers': ['file'],
-            'level': 'ERROR',
-        },
-        'ASyncIOStream': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
-        },
-        'AsyncThreadStreamListener': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
+            'propagate': False
         },
         'WSHandler': {
             'handlers': ['console'],
             'level': 'DEBUG',
-        },
+            'propagate': False
+        }
     }
 }
 

@@ -1,15 +1,15 @@
 import logging
 import os
 import ssl
+import asyncio
 from setup_logger import ROOT_LOGGER
 from signal import signal, SIGINT
-from queue import Queue
 from tornado import web, ioloop
 from tornado.options import define, options, parse_command_line
 from pika_client import PikaClient
 from websocket_handler import WSHandler
-from stream_listener import AsyncThreadStreamListener
 from constants import SETTINGS
+from stream_listener import TweetStreamListener, listen_for_tweets
 
 define("port", default=8000, help="run on the given port.", type=int)
 define("debug", default=True, help="run in debug mode.", type=bool)
@@ -37,13 +37,12 @@ def main():
         **settings
     )
 
-    # Setup PikaClient and start the Async Stream Listener thread.
-    app.pc = PikaClient()
-    queue = Queue()
-    app.queue = queue
+    loop = ioloop.IOLoop.current()
 
-    async_stream_listener_thread = AsyncThreadStreamListener(queue)
-    async_stream_listener_thread.start()
+    # Setup PikaClient.
+    app.pc = PikaClient(loop)
+    queue = asyncio.Queue(loop=loop)
+    app.listener = TweetStreamListener(queue)
 
     context = None
 
@@ -56,11 +55,15 @@ def main():
 
     app.pc.connect()
     signal(SIGINT, sig_exit)
+    loop.run_in_executor(None, listen_for_tweets, app.listener, queue)
     app.pc.run()
 
-    async_stream_listener_thread.shutdown_flag.set()
-    async_stream_listener_thread.stop_listening()
-    async_stream_listener_thread.join()
+    if queue.full():
+        queue.get_nowait()
+        queue.task_done()
+
+    queue.put_nowait(None)
+    app.listener.stop_tracking()
 
     logger.info('Server shutting down.')
 
