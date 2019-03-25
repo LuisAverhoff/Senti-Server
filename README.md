@@ -4,8 +4,7 @@ Backend for the senti web application to analyze all incoming tweets using the T
 
 ```
 message = {
-  polarity: 'A value between -1.0 and 1.0. -1.0 is completely negative and 1.0 is completely positive. This is our y axis on the graph.'
-  timestamp: 'The date the tweet was created. This represents the x axis on our graph.'
+  polarity: 'A value between -1.0 and 1.0. -1.0 is completely negative and 1.0 is completely positive.
 }
 ```
 
