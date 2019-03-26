@@ -1,12 +1,10 @@
 import logging
 import json
 import asyncio
-from contextlib import suppress
 from constants import SETTINGS
 from sentiment_analyzer import calculate_polarity_score, preprocess_tweet
 from tweepy import StreamListener, OAuthHandler, Stream, API
 from tornado.websocket import WebSocketClosedError
-from tornado import gen
 
 auth = OAuthHandler(
     SETTINGS["TWITTER_CONSUMER_API_KEY"], SETTINGS["TWITTER_CONSUMER_API_SECRET_KEY"])
@@ -50,11 +48,7 @@ class TweetStreamListener(StreamListener):
         if getattr(status, 'retweeted_status', None):
             return
 
-        try:
-            self.queue.put_nowait(status)
-        except:
-            self.logger.debug(
-                'The queue is full at the moment. Dropping tweet.')
+        self.queue.put(status)
 
     def on_timeout(self, status):
         self.logger.error('Stream disconnected. continuing...')
@@ -84,20 +78,17 @@ def listen_for_tweets(listener, queue):
     asyncio.set_event_loop(loop)
 
     while True:
-        try:
-            message = queue.get_nowait()
+        message = queue.get()
 
-            if message is None:
-                break
+        if message is None:
+            break
 
-            task = asyncio.ensure_future(process_tweet(message, listener.current_searches,
-                                                       listener.websockets))
+        task = asyncio.ensure_future(process_tweet(message, listener.current_searches,
+                                                   listener.websockets))
 
-            loop.run_until_complete(task)
+        loop.run_until_complete(task)
 
-            queue.task_done()
-        except asyncio.QueueEmpty:
-            continue
+        queue.task_done()
 
     loop.close()
 

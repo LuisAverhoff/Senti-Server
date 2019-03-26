@@ -2,6 +2,7 @@ import logging
 import os
 import ssl
 import asyncio
+from queue import Queue
 from setup_logger import ROOT_LOGGER
 from signal import signal, SIGINT
 from tornado import web, ioloop
@@ -41,7 +42,7 @@ def main():
 
     # Setup PikaClient.
     app.pc = PikaClient(loop)
-    queue = asyncio.Queue(loop=loop)
+    queue = Queue()
     app.listener = TweetStreamListener(queue)
 
     context = None
@@ -58,11 +59,8 @@ def main():
     loop.run_in_executor(None, listen_for_tweets, app.listener, queue)
     app.pc.run()
 
-    if queue.full():
-        queue.get_nowait()
-        queue.task_done()
-
-    queue.put_nowait(None)
+    # This is a sentinel value to to the consumer queue that we are done.
+    queue.put(None)
     app.listener.stop_tracking()
 
     logger.info('Server shutting down.')
