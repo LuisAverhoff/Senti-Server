@@ -28,7 +28,7 @@ Follow this link <https://developer.twitter.com/en/apply-for-access.html> to app
 3. Navigate to the "Keys and Tokens" page.
 4. Select 'Create' under the "Access token & access token secret" section.
 
-After that, simply these paste these four keys in your `.env`file and you're done with this step.
+After that, simply these paste these four keys in your `.env` file and you're done with this step.
 
 ## Setting up a RabbitMQ Server.
 
@@ -38,7 +38,7 @@ If you go to this link <https://www.rabbitmq.com/download.html> you will see a b
 
 For a full list of all the ports that RabbitMQ uses, follow this link <https://www.rabbitmq.com/networking.html#ports>
 
-If you would like to use the RabbitMQ Admin Management UI(this uses port 15672), you are going to need to enable the management plugin.
+If you would like to use the RabbitMQ Admin Management UI(this uses port 15672 and make sure that this port is not blocked as well), you are going to need to enable the management plugin.
 
 To enable this plugin, go to the directory where the RabbitMQ server was installed, go into the sbin folder and run this command `rabbitmq-plugins enable rabbitmq_management`
 
@@ -52,12 +52,33 @@ You can use these credentials to connect your RabbitMQ server during development
 - `RABBITMQ_USERNAME`
 - `RABBITMQ_PASSWORD`
 
-**Note** If you create your own user, make sure to set the value for the `virtual host` property.
+**Note** If you create your own user, make sure to set the value for the `virtual host` property. Whatever value you entered for this property make sure that you also initialize the `RABBITMQ_VIRTUAL_HOST` environment variable with that value as well.
 
 `RABBITMQ_HOST` can be set to localhost during development so that it can connect to the RabbitMQ server that is running on your machine. During poduction, this should point to your live RabbitMQ server.
 
 After this, you have officially setup your RabbitMQ server.
 
-# Running The Server locally
+## Downloading the Required NLTK Modules
+Run this in your python intrepreter shell so you can download the required NTLK modules to run the server.
+
+```
+>>> import nltk
+>>> nltk.download('stopwords')
+>>> nltk.download('punkt')
+```
+
+If you are worried that these NLTK modules won't exist in production, don't worry. Heroku takes care of this for you by looking at the modules specified in the `nltk.txt` file.
+Follow this link <https://devcenter.heroku.com/articles/python-nltk> if you want to find out more.
+
+# Running the Server Locally
 
 To run the server, type `pipenv shell` to start up your virtual environment. Then all you have to do is type `python server.py` for it to use the python interpreter that is in your virtual environment.
+
+# Deploying to Production
+
+This repo is connected to heroku and and any changes made in your master branch, heroku will catch those changes and build the project for you.
+
+# TODO
+
+- Create a wordcloud to showcase the frequency of all the hashtags for a specific query
+- Create a nice deploy to heroku button for to people to use.

@@ -2,7 +2,7 @@ import logging
 import json
 import asyncio
 from constants import SETTINGS
-from sentiment_analyzer import calculate_polarity_score, preprocess_tweet
+from tweet_sentiment_analyzer import calculate_polarity_score_from_tweet, get_hashtag_frequencies_from_tweet, preprocess_tweet
 from tweepy import StreamListener, OAuthHandler, Stream, API
 from tornado.websocket import WebSocketClosedError
 
@@ -38,7 +38,7 @@ class TweetStreamListener(StreamListener):
             potential duplicate search terms.
         '''
         search_terms = set(self.current_searches.values())
-        self.stream.filter(track=search_terms)
+        self.stream.filter(track=search_terms, languages=['en'])
 
     def stop_tracking(self):
         self.stream.disconnect()
@@ -101,9 +101,9 @@ async def process_tweet(status, current_searches, websockets):
     if getattr(status, 'extended_tweet', None):
         tweet = status.extended_tweet['full_text']
 
-    clean_tweet = preprocess_tweet(tweet)
+    polarity_tweet, frequency_tweet = preprocess_tweet(tweet)
 
-    polarity = calculate_polarity_score(clean_tweet)
+    polarity = calculate_polarity_score_from_tweet(polarity_tweet)
 
     message = {
         'polarity': polarity['compound'],
@@ -111,7 +111,7 @@ async def process_tweet(status, current_searches, websockets):
 
     sess_ids = []
 
-    lowercase_tweet = clean_tweet.lower()
+    lowercase_tweet = polarity_tweet.lower()
 
     for sess_id, topic in current_searches.items():
         if topic in lowercase_tweet:

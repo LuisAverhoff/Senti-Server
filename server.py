@@ -10,7 +10,7 @@ from tornado.options import define, options, parse_command_line
 from pika_client import PikaClient
 from websocket_handler import WSHandler
 from constants import SETTINGS
-from stream_listener import TweetStreamListener, listen_for_tweets
+from tweet_stream_listener import TweetStreamListener, listen_for_tweets
 
 define("port", default=8000, help="run on the given port.", type=int)
 define("debug", default=True, help="run in debug mode.", type=bool)

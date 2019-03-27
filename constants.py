@@ -13,6 +13,8 @@ from environs import Env
 env = Env()
 env.read_env()
 
+#TODO(Luis) Will want to add a certfile and keyfile soon so that it used in production.
+
 '''
   Both CERTFILE and KEYFILE will be provided via Heroku as using secured websockets in development
   isn't really necessary. You can add these to the .env file if you wish to add ssl to your development

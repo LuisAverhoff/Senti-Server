@@ -13,6 +13,7 @@ tweepy = "*"
 vadersentiment = "*"
 tornado = "*"
 pika = "*"
+nltk = "*"
 
 [requires]
 python_version = "3.7"
