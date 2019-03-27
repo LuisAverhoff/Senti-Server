@@ -59,7 +59,8 @@ You can use these credentials to connect your RabbitMQ server during development
 After this, you have officially setup your RabbitMQ server.
 
 ## Downloading the Required NLTK Modules
-Run this in your python intrepreter shell so you can download the required NTLK modules to run the server.
+
+Run this in your python intrepreter shell so you can download the required NTLK modules to run the server locally.
 
 ```
 >>> import nltk
@@ -76,9 +77,26 @@ To run the server, type `pipenv shell` to start up your virtual environment. The
 
 # Deploying to Production
 
-This repo is connected to heroku and and any changes made in your master branch, heroku will catch those changes and build the project for you.
+Before deploying to production, we need to setup a free heroku account. Once you have a created your free heroku account, there are three important things you need to do.
+
+- First, add the free cloudAMQP add-on(choose the little lemur version).
+- Second, go to the deploy page and connect your github repo to your heroku account. While you are
+  you can enable automatic deployment so that every push to master is an automatic build. Do not enable the "wait for CI to pass before deploy" button unless you have CI setup.
+- Lastly, go to your settings page and add all the environment variables that this application needs.
 
 # TODO
 
 - Create a wordcloud to showcase the frequency of all the hashtags for a specific query
 - Create a nice deploy to heroku button for to people to use.
+
+# License
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Luis Manuel Averhoff
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

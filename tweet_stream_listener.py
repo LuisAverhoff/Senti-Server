@@ -1,10 +1,11 @@
+from tornado.websocket import WebSocketClosedError
+from tweepy import StreamListener, OAuthHandler, Stream, API
 import logging
 import json
 import asyncio
 from constants import SETTINGS
-from tweet_sentiment_analyzer import calculate_polarity_score_from_tweet, get_hashtag_frequencies_from_tweet, preprocess_tweet
-from tweepy import StreamListener, OAuthHandler, Stream, API
-from tornado.websocket import WebSocketClosedError
+from tweet_sentiment_analyzer import calculate_polarity_score_from_tweet, \
+    get_hashtag_frequencies_from_tweet, preprocess_tweet
 
 auth = OAuthHandler(
     SETTINGS["TWITTER_CONSUMER_API_KEY"], SETTINGS["TWITTER_CONSUMER_API_SECRET_KEY"])
@@ -101,12 +102,17 @@ async def process_tweet(status, current_searches, websockets):
     if getattr(status, 'extended_tweet', None):
         tweet = status.extended_tweet['full_text']
 
-    polarity_tweet, frequency_tweet = preprocess_tweet(tweet)
+    polarity_tweet, filtered_frequency_tweet = preprocess_tweet(tweet)
 
     polarity = calculate_polarity_score_from_tweet(polarity_tweet)
+    frequencies = get_hashtag_frequencies_from_tweet(filtered_frequency_tweet)
 
     message = {
         'polarity': polarity['compound'],
+        'frequencies': {
+            'Hashtags': list(frequencies.keys()),
+            'Count': list(frequencies.values())
+        }
     }
 
     sess_ids = []
