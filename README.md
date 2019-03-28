@@ -4,7 +4,11 @@ Backend for the senti web application to analyze all incoming tweets using the T
 
 ```
 message = {
-  polarity: 'A value between -1.0 and 1.0. -1.0 is completely negative and 1.0 is completely positive.
+  polarity: 'A value between -1.0 and 1.0. -1.0 is completely negative and 1.0 is completely positive.',
+  hashtags: {
+    words: [], 'A list of all the hashtags we found for a single tweet.'
+    frequencies: [] 'How many times each hashtag appeared in the tweet.'
+  }
 }
 ```
 
@@ -77,17 +81,12 @@ To run the server, type `pipenv shell` to start up your virtual environment. The
 
 # Deploying to Production
 
-Before deploying to production, we need to setup a free heroku account. Once you have a created your free heroku account, there are three important things you need to do.
+Before deploying to production, we need to setup a free heroku account. Once you have created your free heroku account, there are three important things you need to do.
 
 - First, add the free cloudAMQP add-on(choose the little lemur version).
 - Second, go to the deploy page and connect your github repo to your heroku account. While you are
-  you can enable automatic deployment so that every push to master is an automatic build. Do not enable the "wait for CI to pass before deploy" button unless you have CI setup.
+  there, enable automatic deployment so that every push to master is an automatic build. Do not enable the "wait for CI to pass before deploy" button unless you have CI setup.
 - Lastly, go to your settings page and add all the environment variables that this application needs.
-
-# TODO
-
-- Create a wordcloud to showcase the frequency of all the hashtags for a specific query
-- Create a nice deploy to heroku button for to people to use.
 
 # License
 
