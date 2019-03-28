@@ -84,10 +84,11 @@ def listen_for_tweets(listener, queue):
         if message is None:
             break
 
-        task = asyncio.ensure_future(process_tweet(message, listener.current_searches,
-                                                   listener.websockets))
-
-        loop.run_until_complete(task)
+        # We still have websockets to send this message to.
+        if len(listener.websockets) > 0:
+            task = asyncio.ensure_future(process_tweet(message, listener.current_searches,
+                                                       listener.websockets))
+            loop.run_until_complete(task)
 
         queue.task_done()
 
@@ -125,7 +126,7 @@ async def process_tweet(status, current_searches, websockets):
 
     for sess_id in sess_ids:
         try:
-            if sess_id in websockets:
+            if sess_id in websockets:  # We need this check in case a websocket closes abruptly.
                 await websockets[sess_id].write_message(message)
         except WebSocketClosedError:
             continue
