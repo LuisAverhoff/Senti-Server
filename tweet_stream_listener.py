@@ -1,10 +1,9 @@
+import logging
+import asyncio
 from tornado.websocket import WebSocketClosedError
 from tweepy import StreamListener, OAuthHandler, Stream, API
-import logging
-import json
-import asyncio
 from constants import SETTINGS
-from tweet_sentiment_analyzer import calculate_polarity_score_from_tweet, \
+from tweet_sentiment_analyzer import calculate_polarity_scores_from_tweet, \
     get_hashtag_frequencies_from_tweet, preprocess_tweet
 
 auth = OAuthHandler(
@@ -96,37 +95,36 @@ def listen_for_tweets(listener, queue):
 
 
 async def process_tweet(status, current_searches, websockets):
-    tweet = status.text
+    tweet = status.text.lower()
 
     # If extended_tweet exists, this the means that status.text is truncated.
     # We want the entire text.
     if getattr(status, 'extended_tweet', None):
-        tweet = status.extended_tweet['full_text']
+        tweet = status.extended_tweet['full_text'].lower()
 
-    polarity_tweet, filtered_frequency_tweet = preprocess_tweet(tweet)
+    polarity_tweet, filtered_hashtag_list = preprocess_tweet(tweet)
 
-    polarity = calculate_polarity_score_from_tweet(polarity_tweet)
-    frequencies = get_hashtag_frequencies_from_tweet(filtered_frequency_tweet)
+    polarity = calculate_polarity_scores_from_tweet(polarity_tweet)
+    hashtag_freqs = get_hashtag_frequencies_from_tweet(filtered_hashtag_list)
 
     message = {
         'polarity': polarity['compound'],
-        'frequencies': {
-            'Hashtags': list(frequencies.keys()),
-            'Count': list(frequencies.values())
+        'hashtags': {
+            'words': list(hashtag_freqs.keys()),
+            'frequencies': list(hashtag_freqs.values())
         }
     }
 
     sess_ids = []
 
-    lowercase_tweet = polarity_tweet.lower()
-
     for sess_id, topic in current_searches.items():
-        if topic in lowercase_tweet:
+        if topic in filtered_hashtag_list:
             sess_ids.append(sess_id)
 
     for sess_id in sess_ids:
         try:
-            if sess_id in websockets:  # We need this check in case a websocket closes abruptly.
+            # We need this check and exception in case a websocket closes abruptly.
+            if sess_id in websockets:
                 await websockets[sess_id].write_message(message)
         except WebSocketClosedError:
             continue

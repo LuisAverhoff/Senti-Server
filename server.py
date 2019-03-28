@@ -1,5 +1,4 @@
 import logging
-import os
 import ssl
 import asyncio
 from queue import Queue

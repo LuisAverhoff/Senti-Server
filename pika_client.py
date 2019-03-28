@@ -1,7 +1,6 @@
 import logging
 import pika
 from constants import SETTINGS
-from tornado import gen
 from pika import PlainCredentials, ConnectionParameters
 from pika.adapters.tornado_connection import TornadoConnection
 

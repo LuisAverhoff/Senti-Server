@@ -7,7 +7,7 @@ analyser = SentimentIntensityAnalyzer()
 default_stopwords = set(stopwords.words('english'))
 
 
-def calculate_polarity_score_from_tweet(text):
+def calculate_polarity_scores_from_tweet(text):
     return analyser.polarity_scores(text)
 
 
@@ -37,14 +37,25 @@ def preprocess_tweet(tweet):
         distribution in a tweet.
     '''
     polarity_tweet = re.sub(r"[^a-zA-Z#!?']", " ", tweet)
-    frequency_tweet = re.sub(r"[^a-zA-Z#]", " ", tweet)
+    hashtag_tweet = re.sub(r"[^a-zA-Z#]", " ", tweet)
 
-    tokenize_frequency_tweet = frequency_tweet.split()
-    filtered_frequency_tweet = [
-        word for word in tokenize_frequency_tweet if not word in default_stopwords]
+    tokenize_hashtag_list = hashtag_tweet.split()
+    filtered_hashtag_list = [
+        word for word in tokenize_hashtag_list if not word in default_stopwords]
 
-    return (polarity_tweet, filtered_frequency_tweet)
+    return (polarity_tweet, filtered_hashtag_list)
 
 
-def get_hashtag_frequencies_from_tweet(tweet):
-    return FreqDist(tweet)
+def extract_hashtags(tweet_list):
+    hashtags = []
+
+    for word in tweet_list:
+        ht = re.findall(r"#(\w+)", word)
+        hashtags.append(ht)
+
+    return hashtags
+
+
+def get_hashtag_frequencies_from_tweet(tweet_list):
+    hashtags = extract_hashtags(tweet_list)
+    return FreqDist(sum(hashtags, []))
