@@ -4,15 +4,12 @@ Backend for the senti web application to analyze all incoming tweets using the T
 
 ```
 message = {
-  polarity: 'A value between -1.0 and 1.0. -1.0 is completely negative and 1.0 is completely positive.',
-  hashtags: {
-    words: [], 'A list of all the hashtags we found for a single tweet.'
-    frequencies: [] 'How many times each hashtag appeared in the tweet.'
-  }
+  polarityIndex: 'An index where 0 is positive sentiment, 1 is negative sentiment and 2 is neutral',
+  hashtags: 'A dictionary of all the hashtags that were found and their frequency.'
 }
 ```
 
-It is important to note that the rate at which a user receives a message is entirely dependent on the query that the user makes. If the user make a query for a popular topic that millions of users talk about like trump, then you can bet that the rate at which you receive your messages will be extremely fast. This is the opposite case for very obscure topics.
+It is important to note that the rate at which a user receives a message is entirely dependent on the query that the user makes and how well your internet connection is. If the user make a query for a popular topic that millions of users talk about like trump, then you can bet that the rate at which you receive your messages will be extremely fast. This is the opposite case for very obscure topics.
 
 # Installing Dependencies
 
@@ -87,6 +84,10 @@ Before deploying to production, we need to setup a free heroku account. Once you
 - Second, go to the deploy page and connect your github repo to your heroku account. While you are
   there, enable automatic deployment so that every push to master is an automatic build. Do not enable the "wait for CI to pass before deploy" button unless you have CI setup.
 - Lastly, go to your settings page and add all the environment variables that this application needs.
+
+# Limitations
+
+At the moment, there can only be two connections open at any time. The reason for this is because any more connections and you will get a HTTP Error code 420. This error code tells you that twitter is rate limiting you for making too many requests.
 
 # License
 

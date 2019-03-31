@@ -7,8 +7,17 @@ analyser = SentimentIntensityAnalyzer()
 default_stopwords = set(stopwords.words('english'))
 
 
-def calculate_polarity_scores_from_tweet(text):
-    return analyser.polarity_scores(text)
+def get_polarity_index_from_tweet(text):
+    polarity_scores = analyser.polarity_scores(text)
+    polarityIndex = 2
+
+    # 0 is positive sentiment, 1 is negative sentiment and 2 is neutral sentiment
+    if polarity_scores['compound'] > 0.05:
+        polarityIndex = 0
+    elif polarity_scores['compound'] < -0.05:
+        polarityIndex = 1
+
+    return polarityIndex
 
 
 def remove_pattern(text, pattern):
@@ -28,9 +37,9 @@ def preprocess_tweet(tweet):
     tweet = remove_pattern(tweet, r"https?://[A-Za-z0-9./]*")
 
     '''
-        remove special characters, numbers and punctuations. Exceptions are #, !, ' and ? as vader uses both ! and ? 
-        characters for emphasis and will affect our polarity score, vader also takes into account contractions and we 
-        want to keep hashtags to calculate which hashtags were more frequent. Because of all these exceptions, we are 
+        remove special characters, numbers and punctuations. Exceptions are #, !, ' and ? as vader uses both ! and ?
+        characters for emphasis and will affect our polarity score, vader also takes into account contractions and we
+        want to keep hashtags to calculate which hashtags were more frequent. Because of all these exceptions, we are
         going to have two tweets. One tweet called polarity tweet that is feed into the vader analyzer and another tweet
         that only has letters and the hashtag. The second tweet is what we will use to calculate the frequency of a hashtag
         from each tweet that we get and will be fed into a function that ntlk has called FreqDist to calculate the frequency

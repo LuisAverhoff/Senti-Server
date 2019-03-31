@@ -3,7 +3,7 @@ import asyncio
 from tornado.websocket import WebSocketClosedError
 from tweepy import StreamListener, OAuthHandler, Stream, API
 from constants import SETTINGS
-from tweet_sentiment_analyzer import calculate_polarity_scores_from_tweet, \
+from tweet_sentiment_analyzer import get_polarity_index_from_tweet, \
     get_hashtag_frequencies_from_tweet, preprocess_tweet
 
 auth = OAuthHandler(
@@ -104,15 +104,12 @@ async def process_tweet(status, current_searches, websockets):
 
     polarity_tweet, filtered_hashtag_list = preprocess_tweet(tweet)
 
-    polarity = calculate_polarity_scores_from_tweet(polarity_tweet)
+    polarityIndex = get_polarity_index_from_tweet(polarity_tweet)
     hashtag_freqs = get_hashtag_frequencies_from_tweet(filtered_hashtag_list)
 
     message = {
-        'polarity': polarity['compound'],
-        'hashtags': {
-            'words': list(hashtag_freqs.keys()),
-            'frequencies': list(hashtag_freqs.values())
-        }
+        'polarityIndex': polarityIndex,
+        'hashtags': dict(hashtag_freqs)
     }
 
     sess_ids = []
