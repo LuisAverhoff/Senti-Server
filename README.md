@@ -87,7 +87,8 @@ Before deploying to production, we need to setup a free heroku account. Once you
 
 # Limitations
 
-At the moment, there can only be two connections open at any time. The reason for this is because any more connections and you will get a HTTP Error code 420. This error code tells you that twitter is rate limiting you for making too many requests.
+There is a chance that tweet might contain multiple search terms where a one search term has a positive sentiment and the other one has a negative sentiment or neutral or whatever. In this case,
+we return the analyzer will return only a single sentiment for both search terms. Take for example the tweet, "I love pizza but not while watching sports". The search terms are pizza and sports. It is clear that pizza has a positives sentiment and sports has a negative sentiment but the analyzer only gives out a single score and assigns it to both search terms. A better way would be to figure out how to make the analyzer gives different polarity scores for the same tweet when you feed it different topics that are talked about in that tweet.
 
 # License
 

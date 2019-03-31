@@ -1,5 +1,4 @@
 import logging
-import asyncio
 import json
 from uuid import uuid4
 from tornado import ioloop, gen
@@ -20,6 +19,7 @@ class WSHandler(WebSocketHandler):
         self.application.pc.register_websocket(self._sess_id, self)
         self.application.listener.websockets[self._sess_id] = self
 
+    @gen.coroutine
     def on_message(self, body):
         WSHandler.LOGGER.debug(
             'Websocket {0} has received a message: {1}'.format(self._sess_id, body))
@@ -27,12 +27,24 @@ class WSHandler(WebSocketHandler):
         message = json.loads(body)
 
         if 'track' in message:
-            ioloop.IOLoop.current().run_in_executor(None,
-                                                    self.application.listener.start_tracking,
-                                                    self._sess_id, message['track'])
+            yield self.wait_still_stream_finishes(message['track'])
         else:
             self.application.pc.redirect_incoming_message(
                 self._sess_id, json.dumps(body))
+
+        yield None
+
+    @gen.coroutine
+    def wait_still_stream_finishes(self, message):
+        # Disconnect the stream momentarily.
+        self.application.listener.stop_tracking()
+
+        while self.application.listener.is_stream_running():
+            yield gen.sleep(1)
+
+        ioloop.IOLoop.current().run_in_executor(None,
+                                                self.application.listener.start_tracking,
+                                                self._sess_id, message)
 
     def on_close(self):
         WSHandler.LOGGER.debug(

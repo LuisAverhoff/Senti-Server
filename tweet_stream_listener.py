@@ -25,13 +25,13 @@ class TweetStreamListener(StreamListener):
         self.stream = Stream(auth=self.api.auth, listener=self,
                              tweet_mode='extended')
         self.current_searches = {}
+        self.streaming = False
 
     def start_tracking(self, sess_id, track):
+        self.logger.debug('Stream has started')
+        self.streaming = True
         # New tweet to listen to.
         self.current_searches[sess_id] = track.lower()
-
-        # Disconnect the stream momentarily to update track list.
-        self.stop_tracking()
 
         '''
             Create a new search term list and put it all in a set to remove
@@ -39,9 +39,14 @@ class TweetStreamListener(StreamListener):
         '''
         search_terms = set(self.current_searches.values())
         self.stream.filter(track=search_terms, languages=['en'])
+        self.streaming = False
+        self.logger.debug('Stream has stopped')
 
     def stop_tracking(self):
         self.stream.disconnect()
+
+    def is_stream_running(self):
+        return self.streaming
 
     def on_status(self, status):
         # We are not processing retweets. Only new tweets.
