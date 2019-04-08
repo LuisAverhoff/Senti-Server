@@ -1,5 +1,7 @@
 import logging
 import json
+from constants import SETTINGS
+from urllib.parse import urlparse
 from uuid import uuid4
 from tornado import ioloop, gen
 from tornado.websocket import WebSocketHandler
@@ -8,15 +10,21 @@ from tornado.websocket import WebSocketHandler
 class WSHandler(WebSocketHandler):
 
     LOGGER = logging.getLogger(__qualname__)
+    WHITELIST_DOMAINS = SETTINGS['WHITELISTED_DOMAINS'].split(",")
 
     def check_origin(self, origin):
-        return True
+        parsed_origin = urlparse(origin)
+
+        if parsed_origin.hostname is 'localhost':
+            return True
+
+        domain = ".".join(parsed_origin.netloc.split(".")[1:])
+        return domain in WSHandler.WHITELIST_DOMAINS
 
     def open(self):
         self._sess_id = uuid4().hex
         WSHandler.LOGGER.debug(
             'Websocket with id {0} is now connected.'.format(self._sess_id))
-        self.application.pc.register_websocket(self._sess_id, self)
         self.application.listener.websockets[self._sess_id] = self
 
     @gen.coroutine
@@ -25,14 +33,7 @@ class WSHandler(WebSocketHandler):
             'Websocket {0} has received a message: {1}'.format(self._sess_id, body))
 
         message = json.loads(body)
-
-        if 'track' in message:
-            yield self.wait_still_stream_finishes(message['track'])
-        else:
-            self.application.pc.redirect_incoming_message(
-                self._sess_id, json.dumps(body))
-
-        yield None
+        yield self.wait_still_stream_finishes(message['track'])
 
     @gen.coroutine
     def wait_still_stream_finishes(self, message):
@@ -49,7 +50,6 @@ class WSHandler(WebSocketHandler):
     def on_close(self):
         WSHandler.LOGGER.debug(
             'Websocket with id {0} has disconnected.'.format(self._sess_id))
-        self.application.pc.unregister_websocket(self._sess_id)
         self.application.listener.websockets.pop(self._sess_id)
 
         if(len(self.application.listener.websockets) is 0):

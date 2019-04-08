@@ -18,7 +18,7 @@ To successfully install all dependencies, make sure you have a python version 3.
 # Setting up Your Environment
 
 A `.env` file is required so that the correct environment settings can be loaded during runtime. A complete list of all the required environment variables can be found in the `.env.sample` file.
-Before we continue, let us setup our rabbitmq server and register a twitter developer account.
+Before we continue, let us create a twitter developer account.
 
 ## Registering for a twitter developer account.
 
@@ -29,35 +29,7 @@ Follow this link <https://developer.twitter.com/en/apply-for-access.html> to app
 3. Navigate to the "Keys and Tokens" page.
 4. Select 'Create' under the "Access token & access token secret" section.
 
-After that, simply these paste these four keys in your `.env` file and you're done with this step.
-
-## Setting up a RabbitMQ Server.
-
-If you go to this link <https://www.rabbitmq.com/download.html> you will see a bunch of different installation guides. Pick the guide that matches your current system. After you have gone through this process, you need to make sure that the following port is open and is not blocked by your firewall:
-
-- 5672: used by AMQP 0-9-1 and 1.0 clients without and with TLS
-
-For a full list of all the ports that RabbitMQ uses, follow this link <https://www.rabbitmq.com/networking.html#ports>
-
-If you would like to use the RabbitMQ Admin Management UI(this uses port 15672 and make sure that this port is not blocked as well), you are going to need to enable the management plugin.
-
-To enable this plugin, go to the directory where the RabbitMQ server was installed, go into the sbin folder and run this command `rabbitmq-plugins enable rabbitmq_management`
-
-Now you should be able to go to `localhost:15672` and see the admin UI. You are going to need to login as guest when you first install RabbitMQ. The credentials for the guest user is:
-
-- username: `guest`
-- password: `guest`
-
-You can use these credentials to connect your RabbitMQ server during development or create your own user with its own credentials and use those. Whichever one you choose, these credentials are what you enter for these environment variables:
-
-- `RABBITMQ_USERNAME`
-- `RABBITMQ_PASSWORD`
-
-**Note** If you create your own user, make sure to set the value for the `virtual host` property. Whatever value you entered for this property make sure that you also initialize the `RABBITMQ_VIRTUAL_HOST` environment variable with that value as well.
-
-`RABBITMQ_HOST` can be set to localhost during development so that it can connect to the RabbitMQ server that is running on your machine. During poduction, this should point to your live RabbitMQ server.
-
-After this, you have officially setup your RabbitMQ server.
+After that, simply paste these four keys in your `.env` file and you're done with this step.
 
 ## Downloading the Required NLTK Modules
 
@@ -80,15 +52,14 @@ To run the server, type `pipenv shell` to start up your virtual environment. The
 
 Before deploying to production, we need to setup a free heroku account. Once you have created your free heroku account, there are three important things you need to do.
 
-- First, add the free cloudAMQP add-on(choose the little lemur version).
-- Second, go to the deploy page and connect your github repo to your heroku account. While you are
+- First, go to the deploy page and connect your github repo to your heroku account. While you are
   there, enable automatic deployment so that every push to master is an automatic build. Do not enable the "wait for CI to pass before deploy" button unless you have CI setup.
 - Lastly, go to your settings page and add all the environment variables that this application needs.
 
 # Limitations
 
 There is a chance that tweet might contain multiple search terms where a one search term has a positive sentiment and the other one has a negative sentiment or neutral or whatever. In this case,
-we return the analyzer will return only a single sentiment for both search terms. Take for example the tweet, "I love pizza but not while watching sports". The search terms are pizza and sports. It is clear that pizza has a positives sentiment and sports has a negative sentiment but the analyzer only gives out a single score and assigns it to both search terms. A better way would be to figure out how to make the analyzer gives different polarity scores for the same tweet when you feed it different topics that are talked about in that tweet.
+the analyzer will return only a single sentiment for both search terms. Take for example the tweet, "I love pizza but not while watching sports". The search terms are pizza and sports. It is clear that pizza has a positives sentiment and sports has a negative sentiment but the analyzer only gives out a single score and assigns it to both search terms. A better way would be to figure out how to gives different polarity scores for the same tweet when it has multiple topics embedded in it and each topic has a different sentiment.
 
 # License
 

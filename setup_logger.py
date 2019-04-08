@@ -35,11 +35,6 @@ LOG_CONFIG = {
             'level': 'INFO',
             'propagate': False
         },
-        'PikaClient': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False
-        },
         'TweetStreamListener': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',

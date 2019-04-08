@@ -1,12 +1,9 @@
 import logging
 import ssl
-import asyncio
 from queue import Queue
 from setup_logger import ROOT_LOGGER
-from signal import signal, SIGINT
 from tornado import web, ioloop
 from tornado.options import define, options, parse_command_line
-from pika_client import PikaClient
 from websocket_handler import WSHandler
 from constants import SETTINGS
 from tweet_stream_listener import TweetStreamListener, listen_for_tweets
@@ -16,12 +13,6 @@ define("debug", default=True, help="run in debug mode.", type=bool)
 
 
 def main():
-    def sig_exit(signum, frame):
-        app.pc.connection.ioloop.add_callback_from_signal(stop_server)
-
-    def stop_server():
-        app.pc.stop()
-
     parse_command_line()
 
     logger = logging.getLogger(ROOT_LOGGER)
@@ -37,10 +28,6 @@ def main():
         **settings
     )
 
-    loop = ioloop.IOLoop.current()
-
-    # Setup PikaClient.
-    app.pc = PikaClient(loop)
     queue = Queue()
     app.listener = TweetStreamListener(queue)
 
@@ -53,12 +40,15 @@ def main():
     app.listen(port=options.port, ssl_options=context)
     logger.info("Server listening on port: {0}".format(options.port))
 
-    app.pc.connect()
-    signal(SIGINT, sig_exit)
+    loop = ioloop.IOLoop.current()
     loop.run_in_executor(None, listen_for_tweets, app.listener, queue)
-    app.pc.run()
 
-    # This is a sentinel value to to the consumer queue that we are done.
+    try:
+        loop.start()
+    except KeyboardInterrupt:
+        loop.stop()
+
+     # This is a sentinel value to to the consumer queue that we are done.
     queue.put(None)
     app.listener.stop_tracking()
 

@@ -13,12 +13,12 @@ from environs import Env
 env = Env()
 env.read_env()
 
-#TODO(Luis) Will want to add a certfile and keyfile soon so that it used in production.
-
 '''
   Both CERTFILE and KEYFILE will be provided via Heroku as using secured websockets in development
   isn't really necessary. You can add these to the .env file if you wish to add ssl to your development
-  environment.
+  environment. You will want to add domains that you would like to be whitelisted by the server so
+  that it can accept websocket connections from those domains. Each domain should be separated by a
+  comma i.e netlify.com,herokuapp.com etc
 '''
 
 SETTINGS = {
@@ -26,11 +26,7 @@ SETTINGS = {
     'TWITTER_CONSUMER_API_SECRET_KEY': env("TWITTER_CONSUMER_API_SECRET_KEY"),
     'TWITTER_ACCESS_KEY': env("TWITTER_ACCESS_KEY"),
     'TWITTER_ACCESS_SECRET_KEY': env("TWITTER_ACCESS_SECRET_KEY"),
-    'RABBITMQ_HOST': env("RABBITMQ_HOST"),
-    'RABBITMQ_PORT': env("RABBITMQ_PORT"),
-    'RABBITMQ_VIRTUAL_HOST': env('RABBITMQ_VIRTUAL_HOST'),
-    'RABBITMQ_USERNAME': env("RABBITMQ_USERNAME"),
-    'RABBITMQ_PASSWORD': env("RABBITMQ_PASSWORD"),
+    'WHITELISTED_DOMAINS': env("WHITELISTED_DOMAINS", ""),
     'CERTFILE': env("CERTFILE", None),
     'KEYFILE': env("KEYFILE", None)
 }

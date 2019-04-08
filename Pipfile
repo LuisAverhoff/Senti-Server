@@ -12,7 +12,6 @@ environs = "*"
 tweepy = "*"
 vadersentiment = "*"
 tornado = "*"
-pika = "*"
 nltk = "*"
 
 [requires]

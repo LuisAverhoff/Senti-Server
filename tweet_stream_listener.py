@@ -30,6 +30,12 @@ class TweetStreamListener(StreamListener):
     def start_tracking(self, sess_id, track):
         self.logger.debug('Stream has started')
         self.streaming = True
+        tracking_list = self.get_updated_tracking_list(sess_id, track)
+        self.stream.filter(track=tracking_list, languages=['en'])
+        self.streaming = False
+        self.logger.debug('Stream has stopped')
+
+    def get_updated_tracking_list(self, sess_id, track):
         # New tweet to listen to.
         self.current_searches[sess_id] = track.lower()
 
@@ -37,10 +43,7 @@ class TweetStreamListener(StreamListener):
             Create a new search term list and put it all in a set to remove
             potential duplicate search terms.
         '''
-        search_terms = set(self.current_searches.values())
-        self.stream.filter(track=search_terms, languages=['en'])
-        self.streaming = False
-        self.logger.debug('Stream has stopped')
+        return set(self.current_searches.values())
 
     def stop_tracking(self):
         self.stream.disconnect()
