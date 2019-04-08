@@ -10,7 +10,7 @@ from tornado.websocket import WebSocketHandler
 class WSHandler(WebSocketHandler):
 
     LOGGER = logging.getLogger(__qualname__)
-    WHITELIST_DOMAINS = SETTINGS['WHITELISTED_DOMAINS'].split(",")
+    WHITELISTED_DOMAINS = SETTINGS['WHITELISTED_DOMAINS'].split(",")
 
     def check_origin(self, origin):
         parsed_origin = urlparse(origin)
@@ -19,7 +19,7 @@ class WSHandler(WebSocketHandler):
             return True
 
         domain = ".".join(parsed_origin.netloc.split(".")[1:])
-        return domain in WSHandler.WHITELIST_DOMAINS
+        return domain in WSHandler.WHITELISTED_DOMAINS
 
     def open(self):
         self._sess_id = uuid4().hex
