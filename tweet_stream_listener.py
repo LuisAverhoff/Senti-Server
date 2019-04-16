@@ -27,7 +27,7 @@ class TweetStreamListener(StreamListener):
         self.current_searches = {}
         self.streaming = False
 
-    def start_tracking(self, sess_id, track):
+    def start_streaming(self, sess_id, track):
         self.logger.debug('Stream has started')
         self.streaming = True
         tracking_list = self.get_updated_tracking_list(sess_id, track)
@@ -45,7 +45,11 @@ class TweetStreamListener(StreamListener):
         '''
         return set(self.current_searches.values())
 
-    def stop_tracking(self):
+    def remove_websocket_and_search(self, sess_id):
+        self.current_searches.pop(sess_id, None)
+        self.websockets.pop(sess_id, None)
+
+    def stop_streaming(self):
         self.stream.disconnect()
 
     def is_stream_running(self):
@@ -120,11 +124,8 @@ async def process_tweet(status, current_searches, websockets):
         'hashtags': dict(hashtag_freqs)
     }
 
-    sess_ids = []
-
-    for sess_id, topic in current_searches.items():
-        if topic in filtered_hashtag_list:
-            sess_ids.append(sess_id)
+    sess_ids = [sess_id for sess_id, topic in current_searches.items()
+                if topic in filtered_hashtag_list]
 
     for sess_id in sess_ids:
         try:

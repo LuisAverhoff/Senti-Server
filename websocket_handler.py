@@ -38,21 +38,21 @@ class WSHandler(WebSocketHandler):
     @gen.coroutine
     def wait_still_stream_finishes(self, message):
         # Disconnect the stream momentarily.
-        self.application.listener.stop_tracking()
+        self.application.listener.stop_streaming()
 
         while self.application.listener.is_stream_running():
             yield gen.sleep(1)
 
         ioloop.IOLoop.current().run_in_executor(None,
-                                                self.application.listener.start_tracking,
+                                                self.application.listener.start_streaming,
                                                 self._sess_id, message)
 
     def on_close(self):
         WSHandler.LOGGER.debug(
             'Websocket with id {0} has disconnected.'.format(self._sess_id))
-        self.application.listener.websockets.pop(self._sess_id)
+        self.application.listener.remove_websocket_and_search(self._sess_id)
 
         if(len(self.application.listener.websockets) is 0):
             WSHandler.LOGGER.debug(
                 "No more connections to keep track of. Closing stream.")
-            self.application.listener.stop_tracking()
+            self.application.listener.stop_streaming()

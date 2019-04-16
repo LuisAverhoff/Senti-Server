@@ -48,9 +48,9 @@ def main():
     except KeyboardInterrupt:
         loop.stop()
 
-     # This is a sentinel value to to the consumer queue that we are done.
+     # This is a sentinel value to let the consumer queue know that we are done.
     queue.put(None)
-    app.listener.stop_tracking()
+    app.listener.stop_streaming()
 
     logger.info('Server shutting down.')
 
